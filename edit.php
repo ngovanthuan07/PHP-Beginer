@@ -31,10 +31,16 @@ and open the template in the editor.
         include './connect_db.php';
         $error = false;
         if (isset($_GET['action']) && $_GET['action'] == 'edit') {
-            if (isset($_POST['user_id']) && !empty($_POST['user_id']) && isset($_POST['password']) && !empty($_POST['password'])) {
-                $result = mysqli_query($con, "UPDATE `user` SET `password` = MD5('" . $_POST['password'] . "'), `status` = " . $_POST['status'] . ", `last_updated`=" . time() . " WHERE `user`.`id` = " . $_POST['user_id'] . ";");
-                if (!$result) {
-                    $error = "Không thể cập nhật tài khoản";
+            if (isset($_POST['user_id']) && !empty($_POST['user_id']) && isset($_POST['old_password']) && !empty($_POST['old_password']) && isset($_POST['new_password']) && !empty($_POST['new_password'])
+            ) {
+                $userResult = mysqli_query($con, "Select * from `user` WHERE (`id` = " . $_POST['user_id'] . " AND `password` = '" . md5($_POST['old_password']) . "')");
+                if ($userResult->num_rows > 0) {
+                    $result = mysqli_query($con, "UPDATE `user` SET `password` = MD5('" . $_POST['new_password'] . "'), `last_updated`=" . time() . " WHERE (`id` = " . $_POST['user_id'] . " AND `password` = '" . md5($_POST['old_password']) . "')");
+                    if (!$result) {
+                        $error = "Không thể cập nhật tài khoản";
+                    }
+                } else {
+                    $error = "Mật khẩu cũ không đúng.";
                 }
                 mysqli_close($con);
                 if ($error !== false) {
@@ -42,42 +48,39 @@ and open the template in the editor.
                     <div id="error-notify" class="box-content">
                         <h1>Thông báo</h1>
                         <h4><?= $error ?></h4>
-                        <a href="./index.php">Danh sách tài khoản</a>
+                        <a href="./edit.php">Đổi lại mật khẩu</a>
                     </div>
                 <?php } else { ?>
                     <div id="edit-notify" class="box-content">
                         <h1><?= ($error !== false) ? $error : "Sửa tài khoản thành công" ?></h1>
-                        <a href="./index.php">Danh sách tài khoản</a>
+                        <a href="./login.php">Quay lại tài khoản</a>
                     </div>
                 <?php } ?>
             <?php } else { ?>
                 <div id="edit-notify" class="box-content">
                     <h1>Vui lòng nhập đủ thông tin để sửa tài khoản</h1>
-                    <a href="./edit_user.php?id=<?= $_POST['user_id'] ?>">Quay lại sửa tài khoản</a>
+                    <a href="./edit.php">Quay lại sửa tài khoản</a>
                 </div>
-            <?php
+                <?php
             }
         } else {
-            $result = mysqli_query($con, "SELECT * FROM user where `id`=" . $_GET['id']);
-            $user = $result->fetch_assoc();
-            mysqli_close($con);
+            session_start();
+            $user = $_SESSION['current_user'];
             if (!empty($user)) {
                 ?>
                 <div id="edit_user" class="box-content">
-                    <h1>Sửa tài khoản "<?= $user['username'] ?>"</h1>
-                    <form action="./edit_user.php?action=edit" method="Post" autocomplete="off">
-                        <label>Password</label></br>
-                        <input type="hidden" name="user_id" value="<?= $user['id'] ?>" />
-                        <input type="password" name="password" value="" />
-                        <select name="status">
-                            <option <?php if (!empty($user['status'])) { ?> selected <?php } ?> value="1">Kích hoạt</option>
-                            <option <?php if (empty($user['status'])) { ?> selected <?php } ?>  value="0">Block</option>
-                        </select>
+                    <h1>Xin chào "<?= $user['fullname'] ?>". Bạn đang thay đổi mật khẩu</h1>
+                    <form action="./edit.php?action=edit" method="Post" autocomplete="off">
+                        <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
+                        <label>Password cũ</label></br>
+                        <input type="password" name="old_password" value="" /></br>
+                        <label>Password mới</label></br>
+                        <input type="password" name="new_password" value="" /></br>
                         <br><br>
                         <input type="submit" value="Edit" />
                     </form>
                 </div>
-            <?php
+                <?php
             }
         }
         ?>
