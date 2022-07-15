@@ -6,7 +6,7 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>Gửi email trong php bằng SMTP Gmail</title>
+        <title>Bài 8: Gửi email có đính kèm file trong php bằng SMTP Gmail</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
@@ -42,13 +42,23 @@ and open the template in the editor.
         use PHPMailer\PHPMailer\PHPMailer;
         use PHPMailer\PHPMailer\Exception;
 
-if (isset($_GET['action']) && $_GET['action'] == "send") {
+include './function.php';
+        if (isset($_GET['action']) && $_GET['action'] == "send") {
             if (empty($_POST['email'])) { //Kiểm tra xem trường email có rỗng không?
                 $error = "Bạn phải nhập địa chỉ email";
             } elseif (!empty($_POST['email']) && !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
                 $error = "Bạn phải nhập email đúng định dạng";
             } elseif (empty($_POST['content'])) { //Kiểm tra xem trường content có rỗng không?
                 $error = "Bạn phải nhập nội dung";
+            }
+            if (isset($_FILES['file_upload'])) {
+                $uploadedFiles = $_FILES['file_upload'];
+                $result = uploadFiles($uploadedFiles);
+                if (!empty($result['errors'])) {
+                    $error = $result['errors'];
+                } else {
+                    $uploadedFiles = $result['uploaded_files'];
+                }
             }
             if (!isset($error)) {
                 include 'library.php'; // include the library file
@@ -71,6 +81,12 @@ if (isset($_GET['action']) && $_GET['action'] == "send") {
                     $mail->addReplyTo(SMTP_UNAME, 'Tên người trả lời');
 //                    $mail->addCC('CCemail@gmail.com');
 //                    $mail->addBCC('BCCemail@gmail.com');
+//                    Attachments
+                    if (!empty($uploadedFiles)) {
+                        foreach ($uploadedFiles as $file) {
+                            $mail->addAttachment(realpath('.') . $file);
+                        }
+                    }
                     $mail->isHTML(true);                                  // Set email format to HTML
                     $mail->Subject = $_POST['title'];
                     $mail->Body = $_POST['content'];
@@ -92,11 +108,13 @@ if (isset($_GET['action']) && $_GET['action'] == "send") {
             ?>
             <div class="container">
                 <h1>Send Email Form</h1>
-                <form id="send-email-form" method="POST" action="?action=send">
+                <form id="send-email-form" method="POST" action="?action=send" enctype="multipart/form-data">
                     <label>Gửi đến email: </label>
                     <input type="text" name="email" value="" /><br/>
                     <label>Tiêu đề: </label>
                     <input type="text" name="title" value="" /><br/>
+                    <label>File: </label>
+                    <input multiple type="file" name="file_upload[]" /><br/>
                     <label>Nội dung: </label>
                     <textarea name="content"></textarea><br/>
                     <input type="submit" value="Send Email" />
