@@ -6,108 +6,102 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>Upload files, Quản lý, thêm, xóa file trong Php</title>
+        <title>Gửi email trong php bằng SMTP Gmail</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
             body{
                 font-family: arial;
             }
-            fieldset { 
-                display: block;
-                margin-left: 2px;
-                margin-right: 2px;
-                padding-top: 0.35em;
-                padding-bottom: 0.625em;
-                padding-left: 0.75em;
-                padding-right: 0.75em;
-                border: 2px groove (internal value);
-            }
-            .box-content{
-                margin: 0 auto;
+            .container{
                 width: 800px;
-                border: 1px solid #ccc;
-                text-align: center;
-                padding: 20px;
+                margin: 0 auto;
             }
-            .box-content form{
-                width: 300px;
-                margin: 40px auto;
+            #send-email-form label {
+                width: 150px;
+                display: inline-block;
             }
-            .box-content form input{
-                margin: 5px 0;
+            #send-email-form input {
+                margin-bottom: 10px;
+                line-height: 32px;
             }
-            #gallery{
-                display: table;
+            #send-email-form textarea {
+                width: 500px;
+                height: 200px;
             }
-            #gallery li{
-                list-style: none;
-                float: left;
-                width: 23%;
-                padding: 10px;
-                box-sizing: border-box;
-                border: 1px solid #ccc;
-                margin: 10px 1%;
-            }
-            #gallery li img{
-                max-width: 100%;
-                height: 120px;
-            }
-            .clear-both{
-                clear: both;
-            }
-            #gallery li input{
-                width: 100%;
+            #send-email-form input[type=submit] {
+                margin-top: 35px;
+                height: 32px;
+                margin-left: 150px;
             }
         </style>
     </head>
     <body>
         <?php
-        include './function.php';
-        if (isset($_GET['upload']) && $_GET['upload'] == 'file') {
-            $uploadedFiles = $_FILES['file_upload'];
-            $errors = uploadFiles($uploadedFiles);
-            if (!empty($errors)) {
-                print_r($errors);
-                exit;
-            } else {
-                echo "Upload thành công. <a href='index.php'>Upload thêm ảnh</a>";
+
+        use PHPMailer\PHPMailer\PHPMailer;
+        use PHPMailer\PHPMailer\Exception;
+
+if (isset($_GET['action']) && $_GET['action'] == "send") {
+            if (empty($_POST['email'])) { //Kiểm tra xem trường email có rỗng không?
+                $error = "Bạn phải nhập địa chỉ email";
+            } elseif (!empty($_POST['email']) && !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+                $error = "Bạn phải nhập email đúng định dạng";
+            } elseif (empty($_POST['content'])) { //Kiểm tra xem trường content có rỗng không?
+                $error = "Bạn phải nhập nội dung";
             }
-            /**
-             * Chú ý khi upload file
-             * Trong file php.ini có các thông số max như sau: 
-             * post_max_size = 8M // Dung lượng lớn nhất cho một lần upload
-             * upload_max_filesize = 2M //Dung lượng file cho phép lớn nhất
-             * max_file_uploads = 20 //Số lượng file upload tối đa
-             * Các bạn muốn upload nhiều hơn thì thay các thông số này và restart lại wamp hoặc xamp
-             */
-        } else {
+            if (!isset($error)) {
+                include 'library.php'; // include the library file
+                require 'vendor/autoload.php';
+                $mail = new PHPMailer(true);                              // Passing `true` enables exceptions
+                try {
+                    //Server settings
+                    $mail->CharSet = "UTF-8";
+                    $mail->SMTPDebug = 0;                                 // Enable verbose debug output
+                    $mail->isSMTP();                                      // Set mailer to use SMTP
+                    $mail->Host = SMTP_HOST;  // Specify main and backup SMTP servers
+                    $mail->SMTPAuth = true;                               // Enable SMTP authentication
+                    $mail->Username = SMTP_UNAME;                 // SMTP username
+                    $mail->Password = SMTP_PWORD;                           // SMTP password
+                    $mail->SMTPSecure = 'ssl';                            // Enable TLS encryption, `ssl` also accepted
+                    $mail->Port = SMTP_PORT;                                    // TCP port to connect to
+                    //Recipients
+                    $mail->setFrom(SMTP_UNAME, "Tên người gửi");
+                    $mail->addAddress($_POST['email'], 'Tên người nhận');     // Add a recipient | name is option
+                    $mail->addReplyTo(SMTP_UNAME, 'Tên người trả lời');
+//                    $mail->addCC('CCemail@gmail.com');
+//                    $mail->addBCC('BCCemail@gmail.com');
+                    $mail->isHTML(true);                                  // Set email format to HTML
+                    $mail->Subject = $_POST['title'];
+                    $mail->Body = $_POST['content'];
+                    $mail->AltBody = $_POST['content']; //None HTML
+                    $result = $mail->send();
+                    if (!$result) {
+                        $error = "Có lỗi xảy ra trong quá trình gửi mail";
+                    }
+                } catch (Exception $e) {
+                    echo 'Message could not be sent. Mailer Error: ', $mail->ErrorInfo;
+                }
+            }
             ?>
-            <div id="upload-zone" class="box-content">
-                <fieldset>
-                    <legend>Upload file</legend>
-                    <form id="upload-file-form" action="?upload=file" method="POST" enctype="multipart/form-data">
-                        <input multiple type="file" name="file_upload[]" />
-                        <input type="submit" value="Upload File" />
-                    </form>
-                </fieldset>
+            <div class = "container">
+                <div class = "error"><?= isset($error) ? $error : "Gửi email thành công" ?></div>
+                <a href = "index.php">Quay lại form gửi mail</a>
             </div>
-            <h1>Danh sách ảnh</h1>
-            <?php
-            $baseURL = 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-            $allFiles = getAllFiles();
-            if (!empty($allFiles)) {
-                ?>
-                <ul id="gallery">
-                    <?php foreach ($allFiles as $file) { ?>
-                        <li>
-                            <img src="<?= $file ?>" />
-                            <input readonly="" type="text" value="<?= $baseURL . $file ?>" />
-                            <a href="./delete.php?url=<?=  urlencode($file)?>">Xóa</a>
-                        </li>
-                    <?php } ?>
-                </ul>
-            <?php } ?>
-        <?php } ?>
+        <?php } else {
+            ?>
+            <div class="container">
+                <h1>Send Email Form</h1>
+                <form id="send-email-form" method="POST" action="?action=send">
+                    <label>Gửi đến email: </label>
+                    <input type="text" name="email" value="" /><br/>
+                    <label>Tiêu đề: </label>
+                    <input type="text" name="title" value="" /><br/>
+                    <label>Nội dung: </label>
+                    <textarea name="content"></textarea><br/>
+                    <input type="submit" value="Send Email" />
+                </form>
+            </div>
+<?php } ?>
     </body>
 </html>
