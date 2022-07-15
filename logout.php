@@ -30,6 +30,7 @@ and open the template in the editor.
         <?php
         session_start();
         unset($_SESSION['current_user']);
+        unset($_SESSION['access_token']);
         ?>
         <div id="user_logout" class="box-content">
             <h1>Đăng xuất tài khoản thành công</h1>
