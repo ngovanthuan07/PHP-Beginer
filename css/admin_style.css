@@ -269,3 +269,15 @@ a:hover{
     text-align: center;
     padding: 20px;
 }
+.product-search{
+    margin-bottom: 15px;
+}
+
+
+.total-products{
+    margin-bottom: 5px;
+    text-align: right;
+}
+.total-products strong{
+    color: red;
+}
