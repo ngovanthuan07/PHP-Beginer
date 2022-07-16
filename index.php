@@ -5,166 +5,134 @@ To change this template file, choose Tools | Templates
 and open the template in the editor.
 -->
 <html>
-
-<head>
-    <title>Ghép Ckeditor cho Form PHP</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: arial;
-        }
-
-        .container {
-            width: 800px;
-            margin: 0 auto;
-        }
-
-        #send-email-form label {
-            width: 150px;
-            display: inline-block;
-        }
-
-        #send-email-form input {
-            margin-bottom: 10px;
-            line-height: 32px;
-        }
-
-        #send-email-form textarea {
-            width: 500px;
-            height: 200px;
-        }
-
-        #send-email-form input[type=submit] {
-            margin-top: 35px;
-            height: 32px;
-            margin-left: 150px;
-        }
-
-        .g-recaptcha {
-            margin-left: 153px;
-        }
-
-        #cke_email-content {
-            float: right;
-            width: 650px;
-        }
-    </style>
-        <script src="./resources/ckeditor/ckeditor.js"></script>
-        <script src="https://www.google.com/recaptcha/enterprise.js?render=6Lcx-fMgAAAAAPolEl7FSSkMRGnEN61oQmTKdkEy"></script>
-</head>
-
-<body>
-    <?php
-
-    use PHPMailer\PHPMailer\PHPMailer;
-    use PHPMailer\PHPMailer\Exception;
-
-    include './function.php';
-    if (isset($_GET['action']) && $_GET['action'] == "send") {
-        //your site secret key
-        $url = 'https://www.google.com/recaptcha/api/siteverify';
-        $secret = '6Lcx-fMgAAAAAPTH_rAkRLZXmk4tYOuv91_jPGF3';
-        $response = $_POST['token_generate'];
-        $remoteip = $_SERVER['REMOTE_ADDR'];
-        //get verify response data
-        $verifyResponse = file_get_contents($url . '?secret=' . $secret . '&response=' . $response);
-        $responseData = json_decode($verifyResponse);
-        if (!$responseData->success) {
-            $error = "Bạn chưa xác minh Captcha";
-        } elseif (empty($_POST['email'])) { //Kiểm tra xem trường email có rỗng không?
-            $error = "Bạn phải nhập địa chỉ email";
-        } elseif (!empty($_POST['email']) && !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-            $error = "Bạn phải nhập email đúng định dạng";
-        } elseif (empty($_POST['content'])) { //Kiểm tra xem trường content có rỗng không?
-            $error = "Bạn phải nhập nội dung";
-        } elseif (isset($_FILES['file_upload'])) {
-            $uploadedFiles = $_FILES['file_upload'];
-            $result = uploadFiles($uploadedFiles);
-            if (!empty($result['errors'])) {
-                $error = $result['errors'];
-            } else {
-                $uploadedFiles = $result['uploaded_files'];
+    <head>
+        <title>Tạo phân trang trong PHP</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body{
+                font-family: arial;
             }
-        }
-        if (!isset($error)) {
-            include 'library.php'; // include the library file
-            require 'vendor/autoload.php';
-            $mail = new PHPMailer(true);                              // Passing `true` enables exceptions
-            try {
-                //Server settings
-                $mail->CharSet = "UTF-8";
-                $mail->SMTPDebug = 0;                                 // Enable verbose debug output
-                $mail->isSMTP();                                      // Set mailer to use SMTP
-                $mail->Host = SMTP_HOST;  // Specify main and backup SMTP servers
-                $mail->SMTPAuth = true;                               // Enable SMTP authentication
-                $mail->Username = SMTP_UNAME;                 // SMTP username
-                $mail->Password = SMTP_PWORD;                           // SMTP password
-                $mail->SMTPSecure = 'ssl';                            // Enable TLS encryption, `ssl` also accepted
-                $mail->Port = SMTP_PORT;                                    // TCP port to connect to
-                //Recipients
-                $mail->setFrom(SMTP_UNAME, "Tên người gửi");
-                $mail->addAddress($_POST['email'], 'Tên người nhận');     // Add a recipient | name is option
-                $mail->addReplyTo(SMTP_UNAME, 'Tên người trả lời');
-                //                    $mail->addCC('CCemail@gmail.com');
-                //                    $mail->addBCC('BCCemail@gmail.com');
-                //                    Attachments
-                if (!empty($uploadedFiles)) {
-                    foreach ($uploadedFiles as $file) {
-                        $mail->addAttachment(realpath('.') . $file);
-                    }
-                }
-                $mail->isHTML(true);                                  // Set email format to HTML
-                $mail->Subject = $_POST['title'];
-                $mail->Body = $_POST['content'];
-                $mail->AltBody = $_POST['content']; //None HTML
-                $result = $mail->send();
-                if (!$result) {
-                    $error = "Có lỗi xảy ra trong quá trình gửi mail";
-                }
-            } catch (Exception $e) {
-                echo 'Message could not be sent. Mailer Error: ', $mail->ErrorInfo;
+            .container{
+                width: 1200px;
+                margin: 0 auto;
             }
-        }
-    ?>
+            h1{
+                text-align: center;
+            }
+            .product-items{
+                border: 1px solid #ccc;
+                padding: 30px;
+            }
+            .product-item{
+                float: left;
+                width: 23%;
+                margin: 1%;
+                padding: 10px;
+                box-sizing: border-box;
+                border: 1px solid #ccc;
+                line-height: 26px;
+            }
+            .product-item label{
+                font-weight: bold;
+            }
+            .product-item p{
+                margin: 0;
+                line-height: 26px;
+                max-height: 52px;
+                overflow: hidden;
+            }
+            .product-price{
+                color: red;
+                font-weight: bold;
+            }
+            .product-img{
+                padding: 5px;
+                border: 1px solid #ccc;
+                margin-bottom: 5px;
+            }
+            .product-item img{
+                max-width: 100%;
+            }
+            .product-item ul{
+                margin: 0;
+                padding: 0;
+                border-right: 1px solid #ccc;
+            }
+            .product-item ul li{
+                float: left;
+                width: 33.3333%;
+                list-style: none;
+                text-align: center;
+                border: 1px solid #ccc;
+                border-right: 0;
+                box-sizing: border-box;
+            }
+            .clear-both{
+                clear: both;
+            }
+            a{
+                text-decoration: none;
+            }
+            .buy-button{
+                text-align: right;
+                margin-top: 10px;
+            }
+            .buy-button a{
+                background: #444;
+                padding: 5px;
+                color: #fff;
+            }
+            #pagination{
+                text-align: right;
+                margin-top: 15px;
+            }
+            .page-item{
+                border: 1px solid #ccc;
+                padding: 5px 9px;
+                color: #000;
+            }
+            .current-page{
+                background: #000;
+                color: #FFF;
+            }
+        </style>
+    </head>
+    <body>
+        <?php
+        include './connect_db.php';
+        $item_per_page = !empty($_GET['per_page'])?$_GET['per_page']:4;
+        $current_page = !empty($_GET['page'])?$_GET['page']:1; //Trang hiện tại
+        $offset = ($current_page - 1) * $item_per_page;
+        $products = mysqli_query($con, "SELECT * FROM `product` ORDER BY `id` ASC  LIMIT " . $item_per_page . " OFFSET " . $offset);
+        $totalRecords = mysqli_query($con, "SELECT * FROM `product`");
+        $totalRecords = $totalRecords->num_rows;
+        $totalPages = ceil($totalRecords / $item_per_page);
+        ?>
         <div class="container">
-            <div class="error"><?= isset($error) ? $error : "Gửi email thành công" ?></div>
-            <a href="index.php">Quay lại form gửi mail</a>
+            <h1>Danh sách sản phẩm</h1>
+            <div class="product-items">
+                <?php
+                while ($row = mysqli_fetch_array($products)) {
+                    ?>
+                    <div class="product-item">
+                        <div class="product-img">
+                            <img src="<?= $row['image'] ?>" title="<?= $row['name'] ?>" />
+                        </div>
+                        <strong><?= $row['name'] ?></strong><br/>
+                        <label>Giá: </label><span class="product-price"><?= number_format($row['price'], 0, ",", ".") ?> đ</span><br/>
+                        <p><?= $row['content'] ?></p>
+                        <div class="buy-button">
+                            <a href="./add_cart.php">Mua sản phẩm</a>
+                        </div>
+                    </div>
+                <?php } ?>
+                <div class="clear-both"></div>
+                <?php
+                include './pagination.php';
+                ?>
+                <div class="clear-both"></div>
+            </div>
         </div>
-    <?php } else {
-    ?>
-        <div class="container">
-            <h1>Send Email Form</h1>
-            <form id="send-email-form" method="POST" action="?action=send" enctype="multipart/form-data">
-                <label>Gửi đến email: </label>
-                <input type="text" name="email" value="" /><br />
-                <label>Tiêu đề: </label>
-                <input type="text" name="title" value="" /><br />
-                <label>File: </label>
-                <input multiple type="file" name="file_upload[]" /><br />
-                <br />
-                <label>Nội dung: </label>
-                <textarea name="content" id="email-content"></textarea><br />
-
-                <input type="hidden" name="token_generate" id="token_generate">
-                <input type="submit" value="Send Email" />
-            </form>
-        </div>
-    <?php } ?>
-    <script>
-        // captcha
-        grecaptcha.enterprise.ready(function() {
-            grecaptcha.enterprise.execute('6Lcx-fMgAAAAAPolEl7FSSkMRGnEN61oQmTKdkEy', {
-                action: 'submit'
-            }).then(function(token) {
-                var response = document.getElementById('token_generate');
-                response.value = token;
-            });
-        });
-        // Replace the <textarea id="editor1"> with a CKEditor
-        // instance, using default configuration.
-        CKEDITOR.replace('email-content');
-    </script>
-</body>
-
+    </body>
 </html>
