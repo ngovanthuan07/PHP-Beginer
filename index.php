@@ -6,7 +6,7 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>Bài 8: Gửi email có đính kèm file trong php bằng SMTP Gmail</title>
+        <title>Ghép Google Captcha cho Form Send Email PHP</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
@@ -34,8 +34,11 @@ and open the template in the editor.
                 height: 32px;
                 margin-left: 150px;
             }
+            .g-recaptcha{
+                margin-left: 153px;
+            }
         </style>
-    </head>
+<script src="https://www.google.com/recaptcha/enterprise.js?render=6Lcx-fMgAAAAAPolEl7FSSkMRGnEN61oQmTKdkEy"></script>    </head>
     <body>
         <?php
 
@@ -43,15 +46,41 @@ and open the template in the editor.
         use PHPMailer\PHPMailer\Exception;
 
 include './function.php';
+        
+        // test captcha
+        // if (isset($_GET['action']) && $_GET['action'] == "send") {
+        //    $url = 'https://www.google.com/recaptcha/api/siteverify';
+        //    $secret = '6Lcx-fMgAAAAAPTH_rAkRLZXmk4tYOuv91_jPGF3';
+        //    $response = $_POST['token_generate'];
+        //    $remoteip = $_SERVER['REMOTE_ADDR'];
+        //    $request = file_get_contents($url.'?secret='.$secret.'&response='.$response);
+        //    $result = json_decode($request);
+        //    echo '<pre>';
+        //    var_dump($result->success);
+        //    echo '</pre>';
+        //    exit;
+        // }
+   
+
+
         if (isset($_GET['action']) && $_GET['action'] == "send") {
-            if (empty($_POST['email'])) { //Kiểm tra xem trường email có rỗng không?
+            //your site secret key
+            $url = 'https://www.google.com/recaptcha/api/siteverify';
+            $secret = '6Lcx-fMgAAAAAPTH_rAkRLZXmk4tYOuv91_jPGF3';
+            $response = $_POST['token_generate'];
+            $remoteip = $_SERVER['REMOTE_ADDR'];
+            //get verify response data
+            $verifyResponse = file_get_contents($url.'?secret='.$secret.'&response='.$response);
+            $responseData = json_decode($verifyResponse);
+            if (!$responseData->success) {
+                $error = "Bạn chưa xác minh Captcha";
+            } elseif (empty($_POST['email'])) { //Kiểm tra xem trường email có rỗng không?
                 $error = "Bạn phải nhập địa chỉ email";
             } elseif (!empty($_POST['email']) && !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
                 $error = "Bạn phải nhập email đúng định dạng";
             } elseif (empty($_POST['content'])) { //Kiểm tra xem trường content có rỗng không?
                 $error = "Bạn phải nhập nội dung";
-            }
-            if (isset($_FILES['file_upload'])) {
+            } elseif (isset($_FILES['file_upload'])) {
                 $uploadedFiles = $_FILES['file_upload'];
                 $result = uploadFiles($uploadedFiles);
                 if (!empty($result['errors'])) {
@@ -108,18 +137,30 @@ include './function.php';
             ?>
             <div class="container">
                 <h1>Send Email Form</h1>
-                <form id="send-email-form" method="POST" action="?action=send" enctype="multipart/form-data">
+                <form id="send-email-form" class="demo-form" method="POST" action="?action=send" enctype="multipart/form-data">
                     <label>Gửi đến email: </label>
                     <input type="text" name="email" value="" /><br/>
                     <label>Tiêu đề: </label>
                     <input type="text" name="title" value="" /><br/>
                     <label>File: </label>
                     <input multiple type="file" name="file_upload[]" /><br/>
+                    <br/>
                     <label>Nội dung: </label>
                     <textarea name="content"></textarea><br/>
+
+                    <input type="hidden" name="token_generate" id="token_generate">
                     <input type="submit" value="Send Email" />
                 </form>
             </div>
 <?php } ?>
     </body>
+    <script>
+    grecaptcha.enterprise.ready(function() {
+    grecaptcha.enterprise.execute('6Lcx-fMgAAAAAPolEl7FSSkMRGnEN61oQmTKdkEy', {action: 'submit'}).then(function(token) {
+        var response = document.getElementById('token_generate');
+        response.value = token;
+    });
+});
+  </script>
+ </script>
 </html>
