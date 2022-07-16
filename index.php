@@ -6,7 +6,7 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>Bài 8: Gửi email có đính kèm file trong php bằng SMTP Gmail</title>
+        <title>Gửi email có đính kèm file trong php bằng SMTP Gmail</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
