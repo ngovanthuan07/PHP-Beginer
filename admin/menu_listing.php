@@ -8,13 +8,13 @@ if (!empty($_SESSION['current_user'])) {
         header('Location: ' . $config_name . '_listing.php');
         exit;
     }
-    if (!empty($_SESSION[$config_name . 'filter'])) {
+    if (!empty($_SESSION[$config_name . '_filter'])) {
         $where = "";
-        foreach ($_SESSION[$config_name . 'filter'] as $field => $value) {
+        foreach ($_SESSION[$config_name . '_filter'] as $field => $value) {
             if (!empty($value)) {
                 switch ($field) {
                     case 'name':
-                        $where .= (!empty($where)) ? " AND " . "`" . $field . "` LIKE '%" . $value . "%'" : "`" . $field . "` LIKE '%" . $value . "%'";
+                        $where .= (!empty($where)) ? " AND " . "`" . $field . "` = '" . $value . "'" : "`" . $field . "` = '" . $value . "'";
                         break;
                     default:
                         $where .= (!empty($where)) ? " AND " . "`" . $field . "` = " . $value . "" : "`" . $field . "` = " . $value . "";
@@ -22,15 +22,27 @@ if (!empty($_SESSION['current_user'])) {
                 }
             }
         }
-        extract($_SESSION[$config_name . 'filter']);
+        extract($_SESSION[$config_name . '_filter']);
     }
     if (!empty($where)) {
-        $menu = mysqli_query($con, "SELECT * FROM `menu` where (" . $where . ") ORDER BY `menu`.`position` ASC");
+        $currentMenu = mysqli_query($con, "SELECT * FROM `menu`  where (" . $where . ")");
+        $currentMenu = mysqli_fetch_assoc($currentMenu);
+        if (!empty($currentMenu)) {
+            $menuList = mysqli_query($con, "SELECT * FROM `menu` ORDER BY `menu`.`position` ASC"); //Lấy tất cả các menu
+            $menuList = mysqli_fetch_all($menuList, MYSQLI_ASSOC);
+            $childrenMenu = createMenuTree($menuList, $currentMenu['id']); //Lấy các Menu con của Current Menu ID
+            if (!empty($childrenMenu)) {
+                $currentMenu['children'] = $childrenMenu;
+            }
+            $menuTree = array(
+                $currentMenu
+            );
+        }
     } else {
         $menu = mysqli_query($con, "SELECT * FROM `menu` ORDER BY `menu`.`position` ASC");
+        $menuList = mysqli_fetch_all($menu, MYSQLI_ASSOC);
+        $menuTree = createMenuTree($menuList, 0); //Lấy các Menu con của Parent ID = 0;
     }
-    $menuList = mysqli_fetch_all($menu, MYSQLI_ASSOC);
-    $menuTree = createMenuTree($menuList, 0);
     mysqli_close($con);
     ?>
     <div class="main-content">
@@ -65,7 +77,9 @@ if (!empty($_SESSION['current_user'])) {
                     <div class="clear-both"></div>
                 </li>
                 <?php
-                    showMenuTree($menuTree,0,$config_name);
+                if (!empty($menuTree)) {
+                    showMenuTree($menuTree, 0, $config_name);
+                }
                 ?>
             </ul>
             <div class="clear-both"></div>
