@@ -1,5 +1,12 @@
 <?php
-
+function deleteChildrenMenu($parent_id,$menuList,$con){
+    foreach($menuList as $item){
+        if($item['parent_id'] == $parent_id){
+            deleteChildrenMenu($item['id'],$menuList,$con);
+            mysqli_query($con, "DELETE FROM `menu` WHERE `id` = " . $item['id']);
+        }
+    }
+}
 function showMenuSelectBox($list, $num, $parent_id) {
     $num++;
     foreach ($list as $item) {
