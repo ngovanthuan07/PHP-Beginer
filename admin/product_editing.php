@@ -87,7 +87,7 @@ if (!empty($_SESSION['current_user'])) {
                     }
                 }
                 ?>
-                <form id="product-form" method="POST" action="<?= (!empty($product) && !isset($_GET['task'])) ? "?action=edit&id=" . $_GET['id'] : "?action=add" ?>"  enctype="multipart/form-data">
+                <form id="editing-form" method="POST" action="<?= (!empty($product) && !isset($_GET['task'])) ? "?action=edit&id=" . $_GET['id'] : "?action=add" ?>"  enctype="multipart/form-data">
                     <input type="submit" title="Lưu sản phẩm" value="" />
                     <div class="clear-both"></div>
                     <div class="wrap-field">

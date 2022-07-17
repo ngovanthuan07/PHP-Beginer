@@ -1,9 +1,23 @@
 <?php
 
+function showMenuSelectBox($list, $num, $parent_id) {
+    $num++;
+    foreach ($list as $item) {
+        $selected = "";
+        if($item['id'] == $parent_id){
+            $selected = "selected";
+        }
+        echo "<option value='".$item['id']."' ".$selected.">" . str_repeat("---", $num - 1) . $item['name'] . "</option>";
+        if (!empty($item['children'])) {
+            showMenuSelectBox($item['children'], $num, $parent_id);
+        }
+    }
+}
+
 function showMenuTree($list, $num, $config_name) {
     $num++;
     foreach ($list as $item) {
-        echo renderTemplate('admin/li-template.php', array('num'=>$num,'config_name' => $config_name, 'row' => $item));
+        echo renderTemplate('admin/li-template.php', array('num' => $num, 'config_name' => $config_name, 'row' => $item));
         if (!empty($item['children'])) {
             showMenuTree($item['children'], $num, $config_name);
         }

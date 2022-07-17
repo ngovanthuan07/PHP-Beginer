@@ -202,21 +202,21 @@ a:hover{
     padding: 20px;
 }
 
-#listing-form label {
+#editing-form label {
     width: 150px;
     display: inline-block;
     float: left;
 }
-#listing-form input {
+#editing-form input {
     margin-bottom: 10px;
     line-height: 32px;
     float: left;
 }
-#listing-form textarea {
+#editing-form textarea {
     width: 500px;
     height: 200px;
 }
-#listing-form input[type=submit] {
+#editing-form input[type=submit] {
     float: right;
     background: url('../images/save.png') center center no-repeat;
     background-size: 32px 32px;
@@ -225,7 +225,7 @@ a:hover{
     border: 0;
     cursor: pointer;
 }
-#cke_listing-content{
+#cke_product-content{
     float: left;
     width: 700px;
 }
@@ -283,4 +283,8 @@ a:hover{
 }
 #menu-list .listing-prop{
     line-height: 40px;
+}
+select[name="parent_id"]{
+    margin-bottom: 10px;
+    height: 40px;
 }
